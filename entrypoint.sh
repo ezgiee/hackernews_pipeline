@@ -7,7 +7,7 @@ while ! nc -z $POSTGRES_HOST $POSTGRES_PORT; do
 done
 
 echo "🚀 Running DB migration script..."
-python init_db.py
+python app/init_db.py
 
 echo "✅ Starting FastAPI server..."
-exec uvicorn main:app --host 0.0.0.0 --port 8000
+exec uvicorn app.main:app --host 0.0.0.0 --port 8000

@@ -5,12 +5,14 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./app:/app
+      - .:/app
     env_file:
       - .env
     depends_on:
       - db
       - redis
+    environment:
+      - PYTHONPATH=/app  # /app dizinini PYTHONPATH olarak ekliyoruz
 
   db:
     image: postgres:14
@@ -28,6 +30,21 @@ services:
     container_name: hackernews_redis
     ports:
       - "6379:6379"
+
+  worker:
+    build:
+      context: .
+    command: celery -A app.celery_app.celery worker --loglevel=info
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+      - db
+    env_file:
+      - .env
+    environment:
+      - PYTHONPATH=/app  # /app dizinini PYTHONPATH olarak ekliyoruz
+
 
 volumes:
   postgres_data:

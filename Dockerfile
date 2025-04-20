@@ -15,6 +15,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Uygulama dosyaları
 COPY ./app /app
 
+ENV PYTHONPATH /app
+
 # Entrypoint script
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
