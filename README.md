@@ -105,6 +105,21 @@ The project uses Celery to fetch and store Hacker News stories asynchronously. T
 
 The application uses Python's built-in logging library to log important events and errors. 
 
+## How to Access API Documentation
+
+This project uses FastAPI, which automatically generates interactive API documentation using Swagger UI.
+
+Once the application is running (via Docker or locally), you can access the documentation at:
+
+http://localhost:8000/docs
+
+You can also view the alternative ReDoc documentation at:
+
+http://localhost:8000/redoc
+
+These UIs allow you to test API endpoints, view request/response formats, and explore available query parameters.
+
+
 ## Notes
 
     Database Migrations with SQLAlchemy: Database migrations have been handled using SQLAlchemy, eliminating the need to write SQL queries manually through its ORM. A script has been added to ensure these migrations are automatically executed within the Docker container.
@@ -117,9 +132,9 @@ The application uses Python's built-in logging library to log important events a
 
     Fully Dockerized Microservice: The entire microservice is dockerized, and no additional steps are required except for the creation of a .env file. Once that is in place, the system is ready to run.
 
-## Future Improvements
+    Built-in Swagger UI support is available through FastAPI. Once the app is running, interactive API documentation can be accessed at `/docs` and `/redoc`.
 
-    Swagger Documentation: Integrating Swagger for API documentation to make it easier for developers to explore and test the endpoints.
+## Future Improvements
 
     Improved Logging Mechanism: Enhance the logging system to provide more detailed and structured logs.
 

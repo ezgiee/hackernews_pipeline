@@ -20,12 +20,22 @@ logging.basicConfig(
 
 @celery.task(bind=True, max_retries=3)
 def fetch_top_stories(self):
+    """
+    Fetch the top stories from Hacker News and trigger background tasks to fetch individual stories.
+
+    This function makes a request to the Hacker News API to get the top story IDs.
+    Then, for each story ID, a background task `fetch_and_store_story` is triggered to fetch the full story details.
+
+    Retries the operation in case of failure with exponential backoff (delays: 10, 30, 60 seconds).
+    """
     logger.info("Fetching top stories from Hacker News...")
     try:
+        # Fetch the top story IDs
         response = requests.get(HACKERNEWS_TOP_URL)
         response.raise_for_status()
         story_ids = response.json()[:101]
 
+        # For each story ID, trigger the fetch_and_store_story task
         for story_id in story_ids:
             fetch_and_store_story.delay(story_id)
     except Exception as exc:
@@ -38,13 +48,25 @@ def fetch_top_stories(self):
 
 @celery.task(bind=True, max_retries=3)
 def fetch_and_store_story(self, story_id):
+    """
+    Fetch an individual story by its ID from Hacker News and store it in the database.
+
+    This function fetches the details of a single story using the provided `story_id`.
+    It checks if the story exists and whether all required fields are available before storing it in the database.
+
+    If the story already exists, it updates the score and descendants. If not, it creates a new entry.
+
+    Retries the operation in case of failure with exponential backoff (delays: 10, 30, 60 seconds).
+    """
     logger.info(f"Fetching story {story_id}")
     db: Session = SessionLocal()
     try:
+        # Fetch the story details
         item_response = requests.get(ITEM_URL.format(story_id))
         item_response.raise_for_status()
         item = item_response.json()
 
+        # Check if the item is a valid story and contains the required fields
         if not item or item.get("type") != "story":
             logger.warning(f"Skipping non-story or empty item: {story_id}")
             return
@@ -54,14 +76,17 @@ def fetch_and_store_story(self, story_id):
             logger.warning(f"Skipping story {story_id} due to missing fields.")
             return
 
+        # Check if the story already exists in the database
         existing = db.query(Story).filter(Story.id == item["id"]).first()
 
         if existing:
+            # Update existing story if the score or descendants have changed
             if existing.score != item.get("score") or existing.descendants != item.get("descendants"):
                 existing.score = item.get("score")
                 existing.descendants = item.get("descendants", 0)
                 db.commit()
         else:
+            # Create a new story entry in the database
             new_story = Story(
                 id=item["id"],
                 title=item.get("title"),
