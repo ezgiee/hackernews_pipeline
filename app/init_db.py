@@ -9,9 +9,6 @@ def init_db():
 
     inspector = inspect(engine)
 
-    #TODO: This if statement is always True, in fact it shouldn't be. 
-    # Docker throws psycopg2.errors.UniqueViolation error. 
-    # It doesn't affect the workflow but needs fixing.
     if not inspector.has_table('stories'):
         # Tablo yoksa, oluştur
         Base.metadata.create_all(bind=engine)
