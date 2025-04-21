@@ -8,3 +8,5 @@ celery
 requests
 python-jose
 python-multipart
+passlib
+bcrypt
