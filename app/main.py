@@ -1,14 +1,13 @@
 from fastapi import FastAPI
-from app.tasks.hn_tasks import print_hello
+from app.routes import stories, stats, auth
 
 app = FastAPI()
+
+app.include_router(auth.router)
+app.include_router(stories.router)
+app.include_router(stats.router)
 
 @app.get("/")
 def read_root():
     return {"message": "HackerNews API is up and running!"}
 
-
-@app.get("/run-task")
-def run_celery_task():
-    task = print_hello.delay()
-    return {"task_id": task.id}
