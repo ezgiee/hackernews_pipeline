@@ -1,6 +1,5 @@
 #!/bin/sh
 
-# PostgreSQL veritabanının hazır olup olmadığını kontrol et
 echo "⏳ Waiting for PostgreSQL to be ready..."
 while ! nc -z $POSTGRES_HOST $POSTGRES_PORT; do
   sleep 1
@@ -12,7 +11,6 @@ case "$ROLE" in
     python app/init_db.py
 
     echo "🛠️ Creating test user if not exists..."
-    # Test kullanıcısını oluştur
     python -c "
 from app.models import User
 from app.db.database import SessionLocal
@@ -20,7 +18,6 @@ from app.auth.jwt_handler import create_access_token
 from sqlalchemy.orm import Session
 import bcrypt
 
-# Düz metin şifreyi hashle
 def hash_password(password: str):
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
@@ -37,6 +34,14 @@ if not existing_user:
 else:
     print('Test user already exists.')
 db.close()
+"
+
+    echo "📥 Fetching top stories..."
+    python -c "
+from app.celery_app import celery
+from app.tasks.hn_tasks import fetch_top_stories
+
+fetch_top_stories.apply_async()
 "
 
     echo "🌐 Starting FastAPI server..."
