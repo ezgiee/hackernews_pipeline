@@ -3,6 +3,8 @@ from sqlalchemy.orm import Session
 from app.db.database import SessionLocal
 from app.models import Story
 from app.auth.jwt_handler import get_current_user
+from datetime import datetime
+
 
 router = APIRouter()
 
@@ -12,6 +14,12 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+def convert_unix_timestamp_to_human_readable(timestamp: int) -> str:
+    """Convert UNIX timestamp to a human-readable date format."""
+    return datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
+
 
 @router.get("/stories")
 def get_stories(
@@ -37,6 +45,9 @@ def get_stories(
     skip = (page - 1) * limit
     stories = query.offset(skip).limit(limit).all()
 
+    for story in stories:
+        story.time = convert_unix_timestamp_to_human_readable(story.time)
+
     return {
         "total": total,
         "page": page,
@@ -48,4 +59,8 @@ def get_stories(
 @router.get("/stories/{story_id}")
 def get_story(story_id: int, db: Session = Depends(get_db), current_user: dict = Depends(get_current_user)):
     story = db.query(Story).filter(Story.id == story_id).first()
-    return {"story": story} if story else {"error": "Not found"}
+    if story:
+        story.time = convert_unix_timestamp_to_human_readable(story.time)
+        return {"story": story}
+    else:
+        return {"error": "Not found"}
