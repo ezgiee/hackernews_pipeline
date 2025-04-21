@@ -7,7 +7,3 @@ app.include_router(auth.router)
 app.include_router(stories.router)
 app.include_router(stats.router)
 
-@app.get("/")
-def read_root():
-    return {"message": "HackerNews API is up and running!"}
-
