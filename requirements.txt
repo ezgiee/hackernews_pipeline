@@ -5,3 +5,6 @@ redis
 sqlalchemy
 python-dotenv
 celery
+requests
+python-jose
+python-multipart

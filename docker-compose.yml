@@ -12,7 +12,7 @@ services:
       - db
       - redis
     environment:
-      - PYTHONPATH=/app  # /app dizinini PYTHONPATH olarak ekliyoruz
+      - ROLE=web
 
   db:
     image: postgres:14
@@ -34,7 +34,6 @@ services:
   worker:
     build:
       context: .
-    command: celery -A app.celery_app.celery worker --loglevel=info
     volumes:
       - .:/app
     depends_on:
@@ -43,8 +42,19 @@ services:
     env_file:
       - .env
     environment:
-      - PYTHONPATH=/app  # /app dizinini PYTHONPATH olarak ekliyoruz
+      - ROLE=worker
 
+  beat:
+    build: .
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+      - db
+    env_file:
+      - .env
+    environment:
+      - ROLE=beat
 
 volumes:
   postgres_data:
